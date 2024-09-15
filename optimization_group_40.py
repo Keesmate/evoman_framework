@@ -101,7 +101,7 @@ def main():
             ### OPTIONAL apply the doomsday if we do end up implementing ###
     
         ### store the results of this run (mean + max fitness) ###
-        # one way: add the generational fitness lists into mean_fitness_generation and max_fitness_generation for later calculation including std
+        # add the generational fitness lists into mean_fitness_generation and max_fitness_generation for later calculation including std
         # this would result in a 10 x n array with 10 experiments and n being the amount of generations we choose
     
     ### calculate final statistics for line plot ###
