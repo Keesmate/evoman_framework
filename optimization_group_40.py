@@ -1,9 +1,9 @@
 ###############################################################################
 # EvoMan FrameWork - V1.0 2016  			                                  #
-# DEMO : Neuroevolution - Genetic Algorithm  neural network.                  #
-# Author: Karine Miras        			                                      #
-# karine.smiras@gmail.com     				                                  #
+# DEMO : Neuroevolution - Genetic Algorithm  neural network.                  #       			                                         				                                  #
 ###############################################################################
+
+''' Need to decide if we just want to evolve the weights or if we want to use NEAT and also evolve the topology '''
 
 # imports framework
 import sys
