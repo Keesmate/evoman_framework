@@ -2,7 +2,17 @@
 # EvoMan FrameWork - V1.0 2016  			                                  #
 # DEMO : Neuroevolution - Genetic Algorithm  neural network.                  #       			                                         				                                  #
 ###############################################################################
+''' Note from Kieran: 
+I have a working algorithm as can be run below on your own machines within the framework. 
+The code creates a line plot for 30 generations averaged over 10 runs for enemy number 2 (copy of which is found in files to the left).
+It is just a simple working model for now so we can discuss further changes. If the methods aren't clear from the code then feel free to ask me for clarification.
 
+We still need to:
+- run it again for 2 other enemies
+- create the second algorithm
+- compare the best versions of each algorithm and make box plots per enemy for each
+- write up the report
+'''
 
 # imports framework
 import sys
