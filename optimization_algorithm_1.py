@@ -2,17 +2,7 @@
 # EvoMan FrameWork - V1.0 2016  			                                  #
 # DEMO : Neuroevolution - Genetic Algorithm  neural network.                  #       			                                         				                                  #
 ###############################################################################
-''' Note from Kieran: 
-I have a working algorithm as can be run below on your own machines within the framework. 
-The code creates a line plot for 30 generations averaged over 10 runs for enemy number 2 (copy of which is found in files to the left).
-It is just a simple working model for now so we can discuss further changes. If the methods aren't clear from the code then feel free to ask me for clarification.
 
-We still need to:
-- run it again for 2 other enemies
-- create the second algorithm
-- compare the best versions of each algorithm and make box plots per enemy for each
-- write up the report
-'''
 
 # imports framework
 import sys
@@ -37,13 +27,6 @@ def evaluate(env, x):
     ''' takes in the population matrix (npop x nvariables) and returns an
     array (length npop) with the fitness of each individual in the population '''
     return np.array(list(map(lambda y: simulation(env,y), x)))
-
-
-#######    TO DO    #########
-
-### add normalization function to avoid negative probabilities?? ###
-
-### apply limits so that our evolved weight values stay within a defined range  ###
 
 # function to select parents (tournament selection)
 def tournament_selection(population, pop_fitness):
@@ -90,6 +73,24 @@ def recombination(population, pop_fitness, x_percent):
     # return newly made children in array format
     return np.array(children)
 
+def uniform_mutation(population, mutation_rate, domain_lower_bound, domain_upper_bound):
+    ''' this function takes in a population, a mutation rate and a lower and upper bound.
+    It applies uniform random mutation to each individual. Each gene of each individual has
+    mutation rate probability of being changed within the range of the lower and upper bound. '''
+    # loop thorugh individuals in population
+    for individual in population:
+
+        # loop through each gene in the individual
+        for i in range(len(individual)):
+
+            # get random value and see if it is under the mutation rate
+            if np.random.rand() < mutation_rate:
+
+                # mutate gene with uniform random value within the range
+                individual[i] = np.random.uniform(domain_lower_bound, domain_upper_bound)
+
+    return population
+
 
 # define a function to make the next generation of individuals
 def next_generation(population, pop_fitness, x_percent):
@@ -114,11 +115,6 @@ def next_generation(population, pop_fitness, x_percent):
     next_generation = np.vstack((best_individuals, new_children))
 
     return next_generation
-
-
-
-### OPTIONAL add doomsday function to introduce diversity when population stagnates (idea from optimization_specialist_demo.py) ###
-
 
 
 def main():
@@ -161,6 +157,7 @@ def main():
     mean_fitness_experiments = []
     best_fitness_experiments = []
     best_individuals = []
+    individual_gains = []
 
     # loop for n experiments (Change to 10 when doing actual testing)
     for i in range(num_experiments):
@@ -179,12 +176,17 @@ def main():
         current_best_individual = population[np.argmax(pop_fitness)]
         current_best_individual_fitness = simulation(env,current_best_individual)
 
+        # write first generation info into file
+        with open(f"{experiment_name}/generation_results/generation_results_run_{i + 1}.txt", 'a') as file:
+            file.write("gen \t best \t\t mean \t\t std\n")
+            file.write(f"{0} \t {round(np.max(pop_fitness), 6)} \t {round(np.mean(pop_fitness), 6)} \t {round(np.std(pop_fitness), 6)}\n")
 
         # evolution loop
         for j in range(generations - 1):
 
             # select the new population and determine their fitnesses
             population = next_generation(population, pop_fitness, 10)
+            population = uniform_mutation(population, mutation, domain_lower_bound, domain_upper_bound)
             pop_fitness = evaluate(env, population)
 
             # add their statistics to statistics lists
@@ -195,14 +197,29 @@ def main():
             if simulation(env, population[np.argmax(pop_fitness)]) > current_best_individual_fitness:
                 current_best_individual = population[np.argmax(pop_fitness)]
 
-            ### OPTIONAL apply the doomsday if we do end up implementing ###
+            # store statistics from this generation (same format as demo code)
+            with open(f"{experiment_name}/generation_results/generation_results_run_{i + 1}.txt", 'a') as file:
+                file.write(f"{j + 1} \t {round(np.max(pop_fitness), 6)} \t {round(np.mean(pop_fitness), 6)}\t {round(np.std(pop_fitness), 6)}\n")
+
 
         # store the results of this run
         mean_fitness_experiments.append(mean_fitness_generation)
         best_fitness_experiments.append(best_fitness_generation)
         best_individuals.append(list(current_best_individual))
 
-        print("Run 1 complete")
+        print(f"Run {i + 1} complete")
+
+        # test the best solution from this run (current_best_individual) 5 times on this enemy
+        average_gains = 0
+        for k in range(5):
+            # get player and enemy life for individual gains
+            f,p,e,t = env.play(pcont=current_best_individual)
+            player_energy = env.get_playerlife()
+            enemy_energy = env.get_enemylife()
+            average_gains += (player_energy - enemy_energy)
+
+        individual_gains.append(average_gains / 5)
+
 
     # calculate final statistics for line plot
     mean_mean_fitness = np.mean(mean_fitness_experiments, axis=0)
@@ -210,6 +227,13 @@ def main():
     mean_max_fitness = np.mean(best_fitness_experiments, axis=0)
     std_max_fitness = np.std(best_fitness_experiments, axis=0)
 
+    print(individual_gains)
+
+    # save the average statistics for each generation over the 10 runs
+    with open(f"{experiment_name}/average_generation_statistics.txt", 'w') as file:
+        file.write("gen \t mean_fitness \t std_mean_fitness \t max_fitness \t std_max_fitness\n")
+        for gen in range(len(mean_mean_fitness)):
+            file.write(f"{gen} \t {round(mean_mean_fitness[gen], 6)} \t {round(std_mean_fitness[gen], 6)} \t\t {round(mean_max_fitness[gen], 6)} \t\t {round(std_max_fitness[gen], 6)}\n")
 
     ### create line-plot: generations on the x axis, with the average mean and average maximum (with std) over n generations per run on the y axis
     generations = np.arange(len(mean_mean_fitness))
@@ -221,6 +245,16 @@ def main():
     plt.title('Average Mean and Max Fitness Over Generations')
     plt.legend()
     plt.grid(True)
+    plt.show()
+
+    # create a boxplot for the 10 best individuals avearage individual gains against this enemy
+    plt.figure(figsize=(8, 6))
+    plt.boxplot(individual_gains, vert=False)
+
+    # add labels and title
+    plt.title('Boxplot of Individual Gains of Best Individual Across 10 Runs')
+    plt.ylabel('Individual Gains')
+    plt.yticks([1])
     plt.show()
 
 
