@@ -69,13 +69,13 @@ reset_on_extinction   = False
 
 [DefaultGenome]
 # Node activation options
-activation_default      = tanh
-activation_mutate_rate  = 0.0
-activation_options      = tanh
+activation_default      = tanh # check sigmoid
+activation_mutate_rate  = 0.0 # try 0.35-0.40
+activation_options      = tanh # check sigmoid
 
 # Node aggregation options
 aggregation_default     = sum
-aggregation_mutate_rate = 0.0
+aggregation_mutate_rate = 0.0 # try 0.15-0.20
 aggregation_options     = sum
 
 # Node bias options
@@ -93,20 +93,20 @@ response_init_stdev         = 0.0
 response_max_value          = 30.0
 response_min_value          = -30.0
 response_mutate_power       = 0.0
-response_mutate_rate        = 0.0
+response_mutate_rate        = 0.0 
 response_replace_rate       = 0.0
 
 # Genome compatibility options
 compatibility_disjoint_coefficient = 1.0
-compatibility_weight_coefficient   = 0.5
+compatibility_weight_coefficient   = 0.5 # Try 0.22 or 0.20-0.25
 
 # Connection add/remove rates
-conn_add_prob           = 0.5
-conn_delete_prob        = 0.5
+conn_add_prob           = 0.5 # Try 0.92 or 0.90-0.95
+conn_delete_prob        = 0.5 # Try 0.56 or 0.50-0.60
 
 # Connection enable options
 enabled_default         = True
-enabled_mutate_rate     = 0.01
+enabled_mutate_rate     = 0.01 # Try 0.3 or 0.25-0.35
 
 # Connection weight options
 weight_init_mean        = 0.0
@@ -114,17 +114,17 @@ weight_init_stdev       = 1.0
 weight_max_value        = 30.0
 weight_min_value        = -30.0
 weight_mutate_power     = 0.5
-weight_mutate_rate      = 0.8
-weight_replace_rate     = 0.1
+weight_mutate_rate      = 0.8 # try 0.67
+weight_replace_rate     = 0.1 # try 0.35
 
 # Node add/remove rates
-node_add_prob           = 0.2
-node_delete_prob        = 0.2
+node_add_prob           = 0.2 # try 0.36
+node_delete_prob        = 0.2 # try 0.95
 
 # Genome node gene parameters
-num_hidden              = 0
-num_inputs              = {num_inputs}
-num_outputs             = {num_outputs}
+num_hidden              = 0 # try 13
+num_inputs              = {num_inputs} # try 20
+num_outputs             = {num_outputs} # try 5
 initial_connection      = full
 feed_forward            = true
 recursive               = false
@@ -134,12 +134,12 @@ compatibility_threshold = 3.0
 
 [DefaultStagnation]
 species_fitness_func = max
-max_stagnation       = 15
-species_elitism      = 2
+max_stagnation       = 15 # try 5
+species_elitism      = 2 # try 0
 
 [DefaultReproduction]
-elitism            = 2
-survival_threshold = 0.2
+elitism            = 2 # try 1
+survival_threshold = 0.2 # try 1
 """
 
 
