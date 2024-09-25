@@ -3,6 +3,7 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import csv  # Added to handle CSV writing
 
 # Import NEAT library
 import neat
@@ -34,10 +35,12 @@ def main():
     if not os.path.exists(experiment_name):
         os.makedirs(experiment_name)
 
+    enemy_number = 2
+
     # Initializes simulation in individual evolution mode, for single static enemy.
     env = Environment(
         experiment_name=experiment_name,
-        enemies=[4],  # You can change the enemy number here
+        enemies=[enemy_number],  
         playermode="ai",
         player_controller=None, 
         enemymode="static",
@@ -56,6 +59,8 @@ def main():
     best_fitness_experiments = []
     best_individuals = []
     individual_gains = []  # Added to store gains of best individuals
+
+    experiment_numbers = []  # Added to store experiment numbers
 
     for experiment in range(num_experiments):
         # Create NEAT configuration file dynamically
@@ -207,9 +212,22 @@ survival_threshold = 0.2
 
         average_gain = np.mean(gains)
         individual_gains.append(average_gain)
+        experiment_numbers.append(experiment + 1)  # Keep track of experiment numbers
 
         # Clean up the config file
         os.remove(config_file)
+
+    # Save the individual gains to a CSV file
+    output_csv = os.path.join(experiment_name, f'individual_gains_enemy_{enemy_number}.csv')
+    with open(output_csv, mode='w', newline='') as csv_file:
+        fieldnames = ['Experiment', 'Average_Gain']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for exp_num, gain in zip(experiment_numbers, individual_gains):
+            writer.writerow({'Experiment': exp_num, 'Average_Gain': gain})
+
+    print(f"Average gains saved to {output_csv}")
 
     # Calculate final statistics for plotting
     mean_mean_fitness = np.mean(mean_fitness_experiments, axis=0)
@@ -217,24 +235,36 @@ survival_threshold = 0.2
     mean_max_fitness = np.mean(best_fitness_experiments, axis=0)
     std_max_fitness = np.std(best_fitness_experiments, axis=0)
 
-    # Create line plot
+    # Save the statistics to a new CSV file
+    stats_csv = os.path.join(experiment_name, f'generation_stats_enemy_{enemy_number}.csv')
+    with open(stats_csv, mode='w', newline='') as stats_file:
+        writer = csv.writer(stats_file)
+        writer.writerow(['Generation', 'Mean_Fitness', 'Std_Mean_Fitness', 'Max_Fitness', 'Std_Max_Fitness'])
+        for gen in range(generations):
+            writer.writerow([gen + 1, mean_mean_fitness[gen], std_mean_fitness[gen], mean_max_fitness[gen], std_max_fitness[gen]])
+
+    print(f"Generation statistics saved to {stats_csv}")
+
+    # Create line plot and save it as a jpg
     generation_axis = np.arange(1, generations + 1)
     plt.figure(figsize=(10, 6))
     plt.errorbar(generation_axis, mean_mean_fitness, yerr=std_mean_fitness, fmt='-o', label='Mean Fitness', capsize=3)
     plt.errorbar(generation_axis, mean_max_fitness, yerr=std_max_fitness, fmt='-s', label='Max Fitness', capsize=3)
     plt.xlabel('Generations')
     plt.ylabel('Fitness')
-    plt.title('NEAT: Average Mean and Max Fitness Over Generations')
+    plt.title(f'NEAT: Average Mean and Max Fitness Over Generations (Enemy {enemy_number})')
     plt.legend()
     plt.grid(True)
+    plt.savefig(os.path.join(experiment_name, f'fitness_plot_enemy_{enemy_number}.jpg'))
     plt.show()
 
-    # Create a boxplot for the individual gains of best individuals across experiments
+    # Create a boxplot for the individual gains of best individuals across experiments and save it as a jpg
     plt.figure(figsize=(8, 6))
     plt.boxplot(individual_gains, vert=False)
-    plt.title('Boxplot of Individual Gains of Best Individuals Across Runs')
+    plt.title(f'Boxplot of Individual Gains of Best Individuals (Enemy {enemy_number})')
     plt.xlabel('Individual Gains')
     plt.yticks([1])
+    plt.savefig(os.path.join(experiment_name, f'gain_boxplot_enemy_{enemy_number}.jpg'))
     plt.show()
 
 if __name__ == '__main__':
